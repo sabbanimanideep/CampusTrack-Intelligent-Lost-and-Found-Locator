@@ -1,0 +1,16 @@
+server:
+  port: 8089
+
+spring:
+  application:
+    name: GadgetTracker
+  datasource:
+    url: jdbc:mysql://127.0.0.1:3306/GadgetTracker
+    username: root
+    password: root1234
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
