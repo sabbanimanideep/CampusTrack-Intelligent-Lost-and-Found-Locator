@@ -1,12 +1,15 @@
 package com.LostGadgetTracker.LostGadgetTracker.Dto;
 
-import lombok.Data;
+import com.LostGadgetTracker.LostGadgetTracker.entities.Role;
+import lombok.Getter;
+import lombok.Setter;
 
-@Data
+@Getter
+@Setter
 public class RegisterRequest {
     private String name;
     private String email;
     private String rollNoOrEmpId;
     private String password;
-    private String role;
+    private Role role;   // STUDENT / ADMIN (from frontend)
 }

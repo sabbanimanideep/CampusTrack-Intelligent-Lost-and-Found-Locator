@@ -4,14 +4,12 @@ import jakarta.persistence.*;
 import lombok.*;
 
 @Entity
-@Table(name = "users", uniqueConstraints = {
-        @UniqueConstraint(columnNames = "email"),
-        @UniqueConstraint(columnNames = "rollNoOrEmpId")
-})
-@Data
+@Table(name = "users")
+@Getter
+@Setter
+@Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
 public class User {
 
     @Id
@@ -21,17 +19,20 @@ public class User {
     @Column(nullable = false)
     private String name;
 
-    @Column(nullable = false, unique = true)
+    @Column(unique = true, nullable = false)
     private String email;
 
-    @Column(nullable = false, unique = true)
+    @Column(name = "roll_no_or_emp_id", unique = true, nullable = false)
     private String rollNoOrEmpId;
 
     @Column(nullable = false)
     private String password;
 
+    @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private String role;   // STUDENT or STAFF
+    private Role role;
 
+    @Builder.Default
+    @Column(nullable = false)
     private boolean enabled = true;
 }

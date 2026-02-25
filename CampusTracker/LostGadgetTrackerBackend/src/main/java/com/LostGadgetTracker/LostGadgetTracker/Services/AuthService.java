@@ -2,6 +2,7 @@ package com.LostGadgetTracker.LostGadgetTracker.Services;
 
 import com.LostGadgetTracker.LostGadgetTracker.Dto.LoginRequest;
 import com.LostGadgetTracker.LostGadgetTracker.Dto.RegisterRequest;
+import com.LostGadgetTracker.LostGadgetTracker.entities.Role;
 import com.LostGadgetTracker.LostGadgetTracker.entities.User;
 import com.LostGadgetTracker.LostGadgetTracker.repo.UserRepository;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -18,20 +19,24 @@ public class AuthService {
     }
 
     public String register(RegisterRequest request) {
+
         if (userRepository.findByEmail(request.getEmail()).isPresent()) {
             throw new RuntimeException("Email already exists");
         }
 
-        if (userRepository.existsByRollNoOrEmpId(request.getRollNoOrEmpId())) {
+        if (userRepository.existsByRoll(request.getRollNoOrEmpId())) {
             throw new RuntimeException("Roll No / Emp ID already exists");
         }
+
+        // ✅ Take role from frontend (default STUDENT)
+        Role role = request.getRole() != null ? request.getRole() : Role.STUDENT;
 
         User user = User.builder()
                 .name(request.getName())
                 .email(request.getEmail())
                 .rollNoOrEmpId(request.getRollNoOrEmpId())
                 .password(encoder.encode(request.getPassword()))
-                .role(request.getRole())
+                .role(role)
                 .enabled(true)
                 .build();
 
@@ -41,17 +46,16 @@ public class AuthService {
 
     public User login(LoginRequest request) {
 
-        // find by email OR rollNoOrEmpId
         User user = userRepository.findByEmail(request.getEmailOrRollNo())
-                .orElseGet(() -> userRepository.findByRollNoOrEmpId(request.getEmailOrRollNo())
-                        .orElseThrow(() -> new RuntimeException("Invalid email or password")));
+                .orElseGet(() ->
+                        userRepository.findByRoll(request.getEmailOrRollNo())
+                                .orElseThrow(() -> new RuntimeException("Invalid email or password"))
+                );
 
-        // check account enabled
         if (!user.isEnabled()) {
-            throw new RuntimeException("Account is disabled. Contact admin");
+            throw new RuntimeException("Account disabled");
         }
 
-        // match password
         if (!encoder.matches(request.getPassword(), user.getPassword())) {
             throw new RuntimeException("Invalid email or password");
         }

@@ -1,8 +1,10 @@
 package com.LostGadgetTracker.LostGadgetTracker.Dto;
 
-import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 
-@Data
+@Getter
+@Setter
 public class LoginRequest {
     private String emailOrRollNo;
     private String password;

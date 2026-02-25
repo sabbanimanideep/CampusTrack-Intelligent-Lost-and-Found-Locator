@@ -2,6 +2,7 @@
 import { Navigate, Route, Routes } from "react-router-dom";
 
 import Home from "./ Home";
+import ForgotPassword from "./pages/ForgotPassword";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 
@@ -21,6 +22,7 @@ export default function App() {
       <Route path="/home" element={<Home />} />
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
+      <Route path="/forgot-password" element={<ForgotPassword />} />
 
       {/* Feature pages (can protect later with auth) */}
       <Route path="/my-gadgets" element={<MyGadgets />} />
