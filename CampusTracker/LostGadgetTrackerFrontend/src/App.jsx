@@ -1,38 +1,106 @@
 // src/App.jsx
-import { Navigate, Route, Routes } from "react-router-dom";
+import { Link, Navigate, Route, Routes, useLocation } from "react-router-dom";
 
-import Home from "./ Home";
+import Home from "./Home";
 import ForgotPassword from "./pages/ForgotPassword";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
+import BrowseItems from "./pages/Student/BrowseItems";
+import ReportFound from "./pages/Student/ReportFound";
+import ReportLost from "./pages/Student/ReportLost";
 
-// Optional placeholders (create later)
-const MyGadgets = () => <div className="p-6">My Gadgets Page</div>;
-const ReportLost = () => <div className="p-6">Report Lost Page</div>;
-const MyReports = () => <div className="p-6">My Reports Page</div>;
-const FindGadget = () => <div className="p-6">Find Gadget Page</div>;
-const Notifications = () => <div className="p-6">Notifications Page</div>;
-const Profile = () => <div className="p-6">Profile Page</div>;
+// ── Simple Placeholder (for future pages only) ─────────
+const PlaceholderPage = ({ title }) => (
+  <div className="min-h-screen bg-slate-950 flex items-center justify-center">
+    <div className="text-center">
+      <div className="text-5xl mb-4">🚧</div>
+      <h2 className="text-2xl font-bold text-white mb-2">{title}</h2>
+      <p className="text-slate-400 mb-4">This page is under construction.</p>
+      <Link to="/" className="text-orange-500 hover:underline text-sm">
+        ← Back to Home
+      </Link>
+    </div>
+  </div>
+);
 
+// ── Protected Route ─────────────────────────────────────
+function ProtectedRoute({ children }) {
+  const isLoggedIn = !!localStorage.getItem("user");
+  const location = useLocation();
+
+  if (!isLoggedIn) {
+    return <Navigate to="/login" state={{ from: location.pathname }} replace />;
+  }
+
+  return children;
+}
+
+// ── App ─────────────────────────────────────────────────
 export default function App() {
   return (
     <Routes>
-      {/* Public pages */}
+      {/* ── Public Routes ───────────────────────────────── */}
       <Route path="/" element={<Home />} />
-      <Route path="/home" element={<Home />} />
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
       <Route path="/forgot-password" element={<ForgotPassword />} />
 
-      {/* Feature pages (can protect later with auth) */}
-      <Route path="/my-gadgets" element={<MyGadgets />} />
-      <Route path="/report-lost" element={<ReportLost />} />
-      <Route path="/my-reports" element={<MyReports />} />
-      <Route path="/find-gadget" element={<FindGadget />} />
-      <Route path="/notifications" element={<Notifications />} />
-      <Route path="/profile" element={<Profile />} />
+      {/* ── Student (Public Browse) ─────────────────────── */}
+      <Route path="/student/browse" element={<BrowseItems />} />
 
-      {/* Fallback */}
+      {/* ── Student (Protected) ─────────────────────────── */}
+      <Route
+        path="/student/report-lost"
+        element={
+          <ProtectedRoute>
+            <ReportLost />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/student/report-found"
+        element={
+          <ProtectedRoute>
+            <ReportFound />
+          </ProtectedRoute>
+        }
+      />
+
+      {/* ── User Dashboard (Protected, Placeholder for now) ─ */}
+      <Route
+        path="/my-gadgets"
+        element={
+          <ProtectedRoute>
+            <PlaceholderPage title="My Gadgets" />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/my-reports"
+        element={
+          <ProtectedRoute>
+            <PlaceholderPage title="My Reports" />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/notifications"
+        element={
+          <ProtectedRoute>
+            <PlaceholderPage title="Notifications" />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/profile"
+        element={
+          <ProtectedRoute>
+            <PlaceholderPage title="Profile" />
+          </ProtectedRoute>
+        }
+      />
+
+      {/* ── Fallback: Redirect unknown URLs to Home ─────── */}
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   );

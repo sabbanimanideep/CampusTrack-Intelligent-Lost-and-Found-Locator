@@ -17,7 +17,12 @@ export default function Login() {
     try {
       const res = await loginUser({ emailOrRollNo: email, password });
       localStorage.setItem("user", JSON.stringify(res));
-      navigate("/");
+      const role = res?.role || res?.userRole;
+      if (role === "STUDENT" || role === "student") {
+        navigate("/student/dashboard");
+      } else {
+        navigate("/");
+      }
     } catch (err) {
       alert(err.response?.data || "Login failed");
     } finally {
