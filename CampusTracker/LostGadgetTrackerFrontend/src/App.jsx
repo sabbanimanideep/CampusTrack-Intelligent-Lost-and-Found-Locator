@@ -1,7 +1,9 @@
 // src/App.jsx
 import { Link, Navigate, Route, Routes, useLocation } from "react-router-dom";
 
+import AdminRoute from "./component/AdminRoute";
 import Home from "./Home";
+import AdminDashboard from "./pages/Admin/AdminDashboard";
 import ForgotPassword from "./pages/ForgotPassword";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
@@ -99,6 +101,12 @@ export default function App() {
           </ProtectedRoute>
         }
       />
+
+        <Route path="/admin/dashboard" element={
+          <AdminRoute>
+            <AdminDashboard />
+          </AdminRoute>
+        } />
 
       {/* ── Fallback: Redirect unknown URLs to Home ─────── */}
       <Route path="*" element={<Navigate to="/" replace />} />

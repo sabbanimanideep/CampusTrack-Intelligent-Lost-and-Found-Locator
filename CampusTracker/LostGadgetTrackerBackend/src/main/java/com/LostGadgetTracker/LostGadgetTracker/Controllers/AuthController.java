@@ -4,6 +4,7 @@ import com.LostGadgetTracker.LostGadgetTracker.Dto.LoginRequest;
 import com.LostGadgetTracker.LostGadgetTracker.Dto.RegisterRequest;
 import com.LostGadgetTracker.LostGadgetTracker.entities.User;
 import com.LostGadgetTracker.LostGadgetTracker.Services.AuthService;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -18,12 +19,12 @@ public class AuthController {
     }
 
     @PostMapping("/register")
-    public String register(@RequestBody RegisterRequest request) {
-        return authService.register(request);
+    public ResponseEntity<?> register(@RequestBody RegisterRequest request) {
+        return ResponseEntity.ok(authService.register(request));
     }
 
     @PostMapping("/login")
-    public User login(@RequestBody LoginRequest request) {
-        return authService.login(request);
+    public ResponseEntity<?> login(@RequestBody LoginRequest request) {
+        return ResponseEntity.ok(authService.login(request)); // returns token + role
     }
 }

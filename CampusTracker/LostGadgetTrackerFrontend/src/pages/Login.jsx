@@ -11,24 +11,34 @@ export default function Login() {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setLoading(true);
-    try {
-      const res = await loginUser({ emailOrRollNo: email, password });
-      localStorage.setItem("user", JSON.stringify(res));
-      const role = res?.role || res?.userRole;
-      if (role === "STUDENT" || role === "student") {
-        navigate("/student/dashboard");
-      } else {
-        navigate("/");
-      }
-    } catch (err) {
-      alert(err.response?.data || "Login failed");
-    } finally {
-      setLoading(false);
+const handleSubmit = async (e) => {
+  e.preventDefault();
+  setLoading(true);
+  try {
+    const res = await loginUser({ emailOrRollNo: email, password });
+
+    // ✅ Store token and role separately
+    localStorage.setItem("token", res.token);
+    localStorage.setItem("role", res.role);
+    localStorage.setItem("user", JSON.stringify(res));
+
+    const role = res?.role;
+
+    // ✅ Redirect based on role
+    if (role === "ADMIN") {
+      navigate("/admin/dashboard");       // 👈 admin goes here
+    } else if (role === "STUDENT") {
+      navigate("/student/dashboard");     // 👈 student goes here
+    } else {
+      navigate("/login");                 // fallback
     }
-  };
+
+  } catch (err) {
+    alert(err.response?.data || "Login failed");
+  } finally {
+    setLoading(false);
+  }
+};
 
   return (
     <div className="min-h-screen grid grid-cols-1 md:grid-cols-2 bg-slate-950">

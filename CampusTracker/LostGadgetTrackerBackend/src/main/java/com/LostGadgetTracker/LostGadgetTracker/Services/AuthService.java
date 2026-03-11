@@ -28,15 +28,13 @@ public class AuthService {
             throw new RuntimeException("Roll No / Emp ID already exists");
         }
 
-        // ✅ Take role from frontend (default STUDENT)
-        Role role = request.getRole() != null ? request.getRole() : Role.STUDENT;
-
+        // ✅ FIXED: Always STUDENT, ignore any role from frontend
         User user = User.builder()
                 .name(request.getName())
                 .email(request.getEmail())
                 .rollNoOrEmpId(request.getRollNoOrEmpId())
                 .password(encoder.encode(request.getPassword()))
-                .role(role)
+                .role(Role.STUDENT) // 👈 hardcoded, never from request
                 .enabled(true)
                 .build();
 
@@ -60,6 +58,6 @@ public class AuthService {
             throw new RuntimeException("Invalid email or password");
         }
 
-        return user;
+        return user; // role is inside user object ✅
     }
 }
