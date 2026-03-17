@@ -1,78 +1,101 @@
 import axios from "axios";
 
-const API = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || "http://localhost:8089/api",
-  timeout: 10000,
-});
+const API_URL = "http://localhost:8089/api";
 
-// ── Request interceptor: attach JWT token ──────────────────────────────────
-API.interceptors.request.use(
-  (config) => {
-    const user = JSON.parse(localStorage.getItem("user") || "{}");
-    if (user?.token) {
-      config.headers.Authorization = `Bearer ${user.token}`;
+// ── Helpers ───────────────────────────────────────────────────────────────────
+const authHeaders = () => {
+  const token = localStorage.getItem("token");
+
+  return {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  };
+};
+
+// ── Lost Items ────────────────────────────────────────────────────────────────
+export const reportLostItem = async (formData) => {
+  const res = await axios.post(`${API_URL}/lost-items`, formData, authHeaders());
+  return res.data;
+};
+
+export const fetchLostItems = async (params = {}) => {
+  const res = await axios.get(`${API_URL}/lost-items`, { ...authHeaders(), params });
+  return res.data;
+};
+
+export const fetchLostItemById = async (id) => {
+  const res = await axios.get(`${API_URL}/lost-items/${id}`, authHeaders());
+  return res.data;
+};
+
+export const updateLostItemStatus = async (id, status) => {
+  const res = await axios.patch(`${API_URL}/lost-items/${id}/status`, { status }, authHeaders());
+  return res.data;
+};
+
+export const deleteLostItem = async (id) => {
+  const res = await axios.delete(`${API_URL}/lost-items/${id}`, authHeaders());
+  return res.data;
+};
+
+// ── Found Items ───────────────────────────────────────────────────────────────
+export const reportFoundItem = async (formData) => {
+  const res = await axios.post(`${API_URL}/found-items`, formData, {
+    ...authHeaders(),
+    headers: {
+      ...authHeaders().headers,
+      "Content-Type": "multipart/form-data"
     }
-    return config;
-  },
-  (error) => Promise.reject(error)
-);
-
-// ── Response interceptor: handle 401 globally ─────────────────────────────
-API.interceptors.response.use(
-  (response) => response,
-  (error) => {
-    if (error.response?.status === 401) {
-      localStorage.removeItem("user");
-      window.location.href = "/login";
-    }
-    return Promise.reject(error);
-  }
-);
-
-// ── Lost Items ─────────────────────────────────────────────────────────────
-export const reportLostItem = (data) =>
-  API.post("/lost", data, {
-    headers: { "Content-Type": "multipart/form-data" },
   });
 
-export const fetchLostItems = (params = {}) =>
-  API.get("/lost", { params });
+  return res.data;
+};
 
-export const fetchLostItemById = (id) => API.get(`/lost/${id}`);
+export const fetchFoundItems = async (params = {}) => {
+  const res = await axios.get(`${API_URL}/found-items`, { ...authHeaders(), params });
+  return res.data;
+};
 
-export const deleteLostItem = (id) => API.delete(`/lost/${id}`);
+export const fetchFoundItemById = async (id) => {
+  const res = await axios.get(`${API_URL}/found-items/${id}`, authHeaders());
+  return res.data;
+};
 
-export const updateLostItem = (id, data) =>
-  API.put(`/lost/${id}`, data, {
-    headers: { "Content-Type": "multipart/form-data" },
-  });
+export const updateFoundItem = async (id, formData) => {
+  const res = await axios.put(`${API_URL}/found-items/${id}`, formData, authHeaders());
+  return res.data;
+};
 
-// ── Found Items ────────────────────────────────────────────────────────────
-export const reportFoundItem = (data) =>
-  API.post("/found", data, {
-    headers: { "Content-Type": "multipart/form-data" },
-  });
+export const deleteFoundItem = async (id) => {
+  const res = await axios.delete(`${API_URL}/found-items/${id}`, authHeaders());
+  return res.data;
+};
 
-export const fetchFoundItems = (params = {}) =>
-  API.get("/found", { params });
+// ── Match / Claim ─────────────────────────────────────────────────────────────
+// FIX #3: Was POST /found-items/:id/claim — no such endpoint exists in FoundItemController.
+// Controller only has PATCH /found-items/:id/status, corrected accordingly.
+export const claimFoundItem = async (id) => {
+  const res = await axios.patch(
+    `${API_URL}/found-items/${id}/status`,
+    { status: "CLAIMED" },
+    authHeaders()
+  );
+  return res.data;
+};
 
-export const fetchFoundItemById = (id) => API.get(`/found/${id}`);
+export const matchItems = async (lostItemId) => {
+  const res = await axios.get(`${API_URL}/lost-items/${lostItemId}/matches`, authHeaders());
+  return res.data;
+};
 
-export const deleteFoundItem = (id) => API.delete(`/found/${id}`);
+// ── My Reports ────────────────────────────────────────────────────────────────
+export const fetchMyLostReports = async () => {
+  const res = await axios.get(`${API_URL}/lost-items/my`, authHeaders());
+  return res.data;
+};
 
-export const updateFoundItem = (id, data) =>
-  API.put(`/found/${id}`, data, {
-    headers: { "Content-Type": "multipart/form-data" },
-  });
-
-// ── Match / Claim ──────────────────────────────────────────────────────────
-export const claimFoundItem = (id) => API.post(`/found/${id}/claim`);
-
-export const matchItems = (lostItemId) =>
-  API.get(`/lost/${id}/matches`);
-
-// ── My Reports (authenticated) ─────────────────────────────────────────────
-export const fetchMyLostReports = () => API.get("/lost/my");
-export const fetchMyFoundReports = () => API.get("/found/my");
-
-export default API;
+export const fetchMyFoundReports = async () => {
+  const res = await axios.get(`${API_URL}/found-items/my`, authHeaders());
+  return res.data;
+};

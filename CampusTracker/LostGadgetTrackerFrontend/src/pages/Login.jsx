@@ -16,7 +16,7 @@ const handleSubmit = async (e) => {
   setLoading(true);
   try {
     const res = await loginUser({ emailOrRollNo: email, password });
-
+    console.log("Login response:", res);
     // ✅ Store token and role separately
     localStorage.setItem("token", res.token);
     localStorage.setItem("role", res.role);

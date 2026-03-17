@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
+import { claimFoundItem } from "../../Services/lostFoundService";
 import { fetchFoundItems } from "./../../Services/lostFoundService";
 
 const CATEGORIES = ["All", "Electronics", "Documents", "Clothing", "Keys", "Accessories", "Other"];
@@ -58,7 +59,7 @@ export default function BrowseItems() {
     setError(null);
     try {
       const res = await fetchFoundItems();
-      setItems(res.data || []);
+      setItems(res || []);
     } catch (err) {
       setError("Failed to load items. Please try again.");
     } finally {
@@ -100,7 +101,15 @@ export default function BrowseItems() {
 
     setFiltered(result);
   }, [items, search, category, sortBy]);
-
+  
+    const handleClaim = async () => {
+  try {
+    await claimFoundItem(item.id);
+    setClaimed(true);
+  } catch (err) {
+    console.error("Claim failed", err);
+  }
+};
   return (
     <div className="min-h-screen bg-slate-950 px-4 py-8 md:px-8">
       {/* Header */}

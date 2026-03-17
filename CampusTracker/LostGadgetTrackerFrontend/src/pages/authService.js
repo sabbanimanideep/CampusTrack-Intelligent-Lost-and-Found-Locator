@@ -5,6 +5,10 @@ const API_URL = "http://localhost:8089/api/auth";
 // ── Login ─────────────────────────────────────────────────────────────────────
 export const loginUser = async ({ emailOrRollNo, password }) => {
   const res = await axios.post(`${API_URL}/login`, { emailOrRollNo, password });
+
+  localStorage.setItem("token", res.data.token);
+  localStorage.setItem("email", res.data.email);   // IMPORTANT
+
   return res.data;
 };
 

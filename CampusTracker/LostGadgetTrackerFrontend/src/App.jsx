@@ -4,10 +4,13 @@ import { Link, Navigate, Route, Routes, useLocation } from "react-router-dom";
 import AdminRoute from "./component/AdminRoute";
 import Home from "./Home";
 import AdminDashboard from "./pages/Admin/AdminDashboard";
+
 import ForgotPassword from "./pages/ForgotPassword";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
+
 import BrowseItems from "./pages/Student/BrowseItems";
+import StudentProfile from "./pages/Student/Profile";
 import ReportFound from "./pages/Student/ReportFound";
 import ReportLost from "./pages/Student/ReportLost";
 
@@ -97,7 +100,7 @@ export default function App() {
         path="/profile"
         element={
           <ProtectedRoute>
-            <PlaceholderPage title="Profile" />
+            <StudentProfile />
           </ProtectedRoute>
         }
       />

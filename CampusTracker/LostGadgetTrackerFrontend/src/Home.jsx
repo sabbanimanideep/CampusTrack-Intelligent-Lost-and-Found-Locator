@@ -390,7 +390,7 @@ function Footer() {
   return (
     <footer style={{ background: "#020810", borderTop: "1px solid rgba(249,115,22,0.1)", padding: "32px 24px", textAlign: "center" }}>
       <p style={{ color: "#334155", fontSize: 14 }}>
-        © 2025 Campus Gadget Tracker — MLRIT. All rights reserved.
+        © 2026 Campus Gadget Tracker — MLRIT. All rights reserved.
       </p>
     </footer>
   );

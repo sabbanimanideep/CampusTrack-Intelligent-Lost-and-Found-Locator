@@ -81,7 +81,12 @@ export default function ReportLost() {
 
     setLoading(true);
     const fd = new FormData();
-    Object.entries(form).forEach(([k, v]) => v && fd.append(k, v));
+    // FIX #3: Was `v && fd.append(k, v)` — falsy check drops reward=0 and treats
+    // the number 0 as missing. Now explicitly checks for empty string/null/undefined
+    // so numeric zero and other valid falsy values are correctly included.
+    Object.entries(form).forEach(([k, v]) => {
+      if (v !== "" && v !== null && v !== undefined) fd.append(k, v);
+    });
     if (image) fd.append("image", image);
 
     try {
