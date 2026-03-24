@@ -1,18 +1,12 @@
 package com.LostGadgetTracker.LostGadgetTracker.Services;
 
 import com.LostGadgetTracker.LostGadgetTracker.Config.JwtUtil;
-import com.LostGadgetTracker.LostGadgetTracker.Dto.ChangePasswordRequest;
 import com.LostGadgetTracker.LostGadgetTracker.Dto.LoginRequest;
-import com.LostGadgetTracker.LostGadgetTracker.Dto.ProfileResponse;
 import com.LostGadgetTracker.LostGadgetTracker.Dto.RegisterRequest;
 import com.LostGadgetTracker.LostGadgetTracker.entities.Role;
 import com.LostGadgetTracker.LostGadgetTracker.entities.User;
-import com.LostGadgetTracker.LostGadgetTracker.repo.FoundItemRepository;
-import com.LostGadgetTracker.LostGadgetTracker.repo.LostItemRepository;
 import com.LostGadgetTracker.LostGadgetTracker.repo.UserRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.Map;

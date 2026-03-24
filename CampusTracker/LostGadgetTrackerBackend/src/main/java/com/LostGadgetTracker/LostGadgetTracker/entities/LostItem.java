@@ -2,12 +2,10 @@ package com.LostGadgetTracker.LostGadgetTracker.entities;
 
 
 
-
 import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "lost_items")
@@ -21,60 +19,34 @@ public class LostItem {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    // Item Info
     @Column(nullable = false)
-    private String name;
+    private String itemName;
 
-    @Column(nullable = false, columnDefinition = "TEXT")
+    @Column(nullable = false)
+    private String category;
+
+    @Column(length = 1000)
     private String description;
 
-    @Enumerated(EnumType.STRING)
+    // Lost Details
     @Column(nullable = false)
-    private Category category;
-
-    @Column(nullable = false)
-    private LocalDate date;
+    private LocalDate dateLost;
 
     @Column(nullable = false)
-    private String location;
+    private String lastSeenLocation;
 
-    private String contact;
+    // Contact
+    private String contactNumber;
 
-    @Builder.Default
-    private Double reward = 0.0;
+    @Column(nullable = false)
+    private String userEmail; // 🔥 user who lost item
 
-    // ── Image stored directly in DB as LONGBLOB ──────────────────
+    // Optional reward
+    private Double reward;
+
+    // Image
     @Lob
-    @Column(name = "image_data", columnDefinition = "LONGBLOB")
-    private byte[] imageData;
-
-    @Column(name = "image_type")   // e.g. "image/jpeg", "image/png"
-    private String imageType;
-    // ─────────────────────────────────────────────────────────────
-
-    @Enumerated(EnumType.STRING)
-    @Builder.Default
-    private Status status = Status.ACTIVE;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "reported_by")
-    private User reportedBy;
-
-    @Column(updatable = false)
-    @Builder.Default
-    private LocalDateTime createdAt = LocalDateTime.now();
-
-    private LocalDateTime updatedAt;
-
-    @PreUpdate
-    public void onUpdate() {
-        this.updatedAt = LocalDateTime.now();
-    }
-
-    public enum Category {
-        electronics, documents, clothing, keys, accessories, other
-    }
-
-    public enum Status {
-        ACTIVE, MATCHED, RESOLVED
-    }
+    @Column(columnDefinition = "LONGBLOB")
+    private byte[] image;
 }

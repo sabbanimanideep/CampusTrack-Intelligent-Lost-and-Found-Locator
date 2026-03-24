@@ -25,6 +25,7 @@ function Navbar({ active, setActive }) {
     { label: "Home", href: "#home" },
     { label: "Track", href: "#track" },
     { label: "Lost & Found", href: "#lost" },
+    { label: "Browse Lost Items", href: "#browse-lost" },
     { label: "My Gadgets", href: "#gadgets" },
   ];
 
@@ -385,6 +386,135 @@ function LostFoundSection() {
   );
 }
 
+
+// ── Browse Lost Items Section ─────────────────────────────────────────────
+function BrowseLostSection() {
+  const navigate = useNavigate();
+
+  const categories = [
+    { icon: "💻", label: "Electronics" },
+    { icon: "📄", label: "Documents" },
+    { icon: "👕", label: "Clothing" },
+    { icon: "🔑", label: "Keys" },
+    { icon: "🎒", label: "Accessories" },
+    { icon: "📦", label: "Other" },
+  ];
+
+  return (
+    <section id="browse-lost" style={{ background: "#050b1a", padding: "80px 24px" }}>
+      <div style={{ maxWidth: 1200, margin: "0 auto" }}>
+        {/* Header */}
+        <div style={{ textAlign: "center", marginBottom: 48 }}>
+          <span style={{ color: "#f97316", fontWeight: 700, fontSize: 13, letterSpacing: 2, textTransform: "uppercase" }}>
+            Lost Item Registry
+          </span>
+          <h2 style={{ color: "#fff", fontSize: 36, fontWeight: 900, marginTop: 8 }}>
+            Browse Lost Items
+          </h2>
+          <p style={{ color: "#64748b", marginTop: 8, maxWidth: 520, margin: "8px auto 0", lineHeight: 1.7, fontSize: 15 }}>
+            See what fellow students have reported missing. If you've found something, check here first — the owner might already be looking.
+          </p>
+        </div>
+
+        {/* Category quick-filter chips */}
+        <div style={{ display: "flex", flexWrap: "wrap", gap: 10, justifyContent: "center", marginBottom: 44 }}>
+          {categories.map((c) => (
+            <button
+              key={c.label}
+              onClick={() => navigate(`/student/browse-lost?category=${c.label.toLowerCase()}`)}
+              style={{
+                display: "flex", alignItems: "center", gap: 6,
+                padding: "8px 16px",
+                background: "rgba(249,115,22,0.08)",
+                border: "1px solid rgba(249,115,22,0.2)",
+                borderRadius: 100,
+                color: "#cbd5e1",
+                fontWeight: 600,
+                fontSize: 13,
+                cursor: "pointer",
+                transition: "all 0.2s",
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.background = "rgba(249,115,22,0.2)";
+                e.currentTarget.style.borderColor = "#f97316";
+                e.currentTarget.style.color = "#f97316";
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.background = "rgba(249,115,22,0.08)";
+                e.currentTarget.style.borderColor = "rgba(249,115,22,0.2)";
+                e.currentTarget.style.color = "#cbd5e1";
+              }}
+            >
+              <span>{c.icon}</span> {c.label}
+            </button>
+          ))}
+        </div>
+
+        {/* CTA card */}
+        <div style={{
+          background: "linear-gradient(135deg, rgba(249,115,22,0.1), rgba(249,115,22,0.04))",
+          border: "1px solid rgba(249,115,22,0.25)",
+          borderRadius: 24,
+          padding: "48px 36px",
+          display: "flex",
+          flexWrap: "wrap",
+          alignItems: "center",
+          justifyContent: "space-between",
+          gap: 24,
+        }}>
+          <div style={{ maxWidth: 560 }}>
+            <div style={{ fontSize: 44, marginBottom: 14 }}>🔎</div>
+            <h3 style={{ color: "#fff", fontSize: 24, fontWeight: 800, marginBottom: 10 }}>
+              Think You Spotted Something?
+            </h3>
+            <p style={{ color: "#64748b", lineHeight: 1.7, fontSize: 15 }}>
+              Browse the full registry of lost items reported by students. Filter by category, date, or location — and help reunite owners with their belongings.
+            </p>
+          </div>
+          <div style={{ display: "flex", flexDirection: "column", gap: 12, minWidth: 200 }}>
+            <button
+              onClick={() => navigate("/student/browse-lost")}
+              style={{
+                padding: "13px 28px",
+                background: "#f97316",
+                color: "#fff",
+                border: "none",
+                borderRadius: 10,
+                fontWeight: 700,
+                fontSize: 15,
+                cursor: "pointer",
+                transition: "background 0.2s",
+              }}
+              onMouseEnter={(e) => e.currentTarget.style.background = "#ea6c0a"}
+              onMouseLeave={(e) => e.currentTarget.style.background = "#f97316"}
+            >
+              📋 View All Lost Items
+            </button>
+            <button
+              onClick={() => navigate("/student/report-lost")}
+              style={{
+                padding: "13px 28px",
+                background: "transparent",
+                color: "#f97316",
+                border: "1.5px solid #f97316",
+                borderRadius: 10,
+                fontWeight: 700,
+                fontSize: 15,
+                cursor: "pointer",
+                transition: "all 0.2s",
+              }}
+              onMouseEnter={(e) => { e.currentTarget.style.background = "#f97316"; e.currentTarget.style.color = "#fff"; }}
+              onMouseLeave={(e) => { e.currentTarget.style.background = "transparent"; e.currentTarget.style.color = "#f97316"; }}
+            >
+              + Report a Lost Item
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
 // ── Footer ─────────────────────────────────────────────────────────────
 function Footer() {
   return (
@@ -401,7 +531,7 @@ export default function Home() {
   const [active, setActive] = useState("Home");
 
   useEffect(() => {
-    const sections = ["home", "track", "lost", "gadgets"];
+    const sections = ["home", "track", "lost", "browse-lost", "gadgets"];
     const observer = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
@@ -410,6 +540,7 @@ export default function Home() {
               home: "Home",
               track: "Track",
               lost: "Lost & Found",
+              "browse-lost": "Browse Lost Items",
               gadgets: "My Gadgets",
             }[entry.target.id];
             if (label) setActive(label);
@@ -432,6 +563,7 @@ export default function Home() {
       <Hero />
       <TrackSection />
       <LostFoundSection />
+      <BrowseLostSection />
       <Footer />
     </div>
   );

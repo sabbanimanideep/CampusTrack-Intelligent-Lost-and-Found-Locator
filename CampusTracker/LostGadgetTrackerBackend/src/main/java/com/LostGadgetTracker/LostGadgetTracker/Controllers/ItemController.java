@@ -1,47 +1,30 @@
 package com.LostGadgetTracker.LostGadgetTracker.Controllers;
 
-import java.util.List;
-
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
-import com.LostGadgetTracker.LostGadgetTracker.entities.FoundItem;
-import com.LostGadgetTracker.LostGadgetTracker.entities.LostItem;
-import com.LostGadgetTracker.LostGadgetTracker.entities.User;
-import com.LostGadgetTracker.LostGadgetTracker.repo.FoundItemRepository;
-import com.LostGadgetTracker.LostGadgetTracker.repo.LostItemRepository;
-import com.LostGadgetTracker.LostGadgetTracker.repo.UserRepository;
+import java.util.List;
 
+import com.LostGadgetTracker.LostGadgetTracker.entities.*;
+import com.LostGadgetTracker.LostGadgetTracker.Services.ItemService;
 
 @RestController
 @RequestMapping("/api/items")
+@CrossOrigin(origins = "*")
 public class ItemController {
 
     @Autowired
-    private LostItemRepository lostRepo;
+    private ItemService service;
 
-    @Autowired
-    private FoundItemRepository foundRepo;
-
-    @Autowired
-    private UserRepository userRepo;
-
-    @GetMapping("/my-lost")
-    public List<LostItem> myLost(Authentication auth) {
-
-        User user = userRepo.findByEmail(auth.getName())
-                .orElseThrow(() -> new RuntimeException("User not found"));
-
-        return lostRepo.findByReportedBy(user);
+    // ✅ Get Found Items by user
+    @GetMapping("/found")
+    public List<FoundItem> getFound(@RequestParam String email) {
+        return service.getFoundByEmail(email);
     }
 
-    @GetMapping("/my-found")
-    public List<FoundItem> myFound(Authentication auth) {
-
-        User user = userRepo.findByEmail(auth.getName())
-                .orElseThrow(() -> new RuntimeException("User not found"));
-
-        return foundRepo.findByReportedBy(user);
+    // ✅ Get Lost Items by user
+    @GetMapping("/lost")
+    public List<LostItem> getLost(@RequestParam String email) {
+        return service.getLostByEmail(email);
     }
 }

@@ -37,14 +37,10 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf.disable())
                 .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
+                        .requestMatchers("/**").permitAll()
                         .requestMatchers("/api/auth/**").permitAll()
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")
                         .requestMatchers("/api/gadget/**").hasAnyRole("ADMIN", "STUDENT")
-                        .requestMatchers(HttpMethod.GET, "/api/found-items").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/api/found-items/**").permitAll()
-                        .requestMatchers("/uploads/**").permitAll()
-                        .requestMatchers("/api/lost-items/**").authenticated()
-                        .requestMatchers("/api/found-items/**").authenticated()
                         .requestMatchers("/api/**").authenticated()  // ✅ protected, not permitAll
                         .anyRequest().authenticated()
                 )

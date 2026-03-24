@@ -1,45 +1,36 @@
 package com.LostGadgetTracker.LostGadgetTracker.Controllers;
 
+
+
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import com.LostGadgetTracker.LostGadgetTracker.Dto.ChangePasswordRequest;
-import com.LostGadgetTracker.LostGadgetTracker.Dto.ProfileResponse;
-import com.LostGadgetTracker.LostGadgetTracker.Services.UserService;
 import com.LostGadgetTracker.LostGadgetTracker.entities.User;
+import com.LostGadgetTracker.LostGadgetTracker.Services.UserService;
 
 @RestController
 @RequestMapping("/api/users")
+@CrossOrigin(origins = "*")
 public class UserController {
 
     @Autowired
     private UserService service;
 
-    @Autowired
-    private UserService userService;
-
+    // ✅ Get Profile
     @GetMapping("/profile")
-    public ProfileResponse getProfile(Authentication auth) {
-        if (auth == null) {
-            throw new RuntimeException("User not authenticated");
+    public ResponseEntity<?> getProfile(@RequestParam String email) {
+        try {
+            User user = service.getProfile(email);
+            return ResponseEntity.ok(user);
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(404).body(e.getMessage());
         }
-        return userService.getProfile(auth.getName());
     }
 
-    @PutMapping("/update-profile")
-    public User updateProfile(Authentication auth,@RequestBody User user){
-
-        return service.updateProfile(auth.getName(),user);
-    }
-
-    @PutMapping("/change-password")
-    public String changePassword(Authentication auth,
-                                 @RequestBody ChangePasswordRequest req){
-
-        service.changePassword(auth.getName(),req);
-
-        return "Password Updated";
+    // ✅ Update Profile
+    @PutMapping("/update")
+    public User updateProfile(@RequestBody User user) {
+        return service.updateProfile(user);
     }
 }

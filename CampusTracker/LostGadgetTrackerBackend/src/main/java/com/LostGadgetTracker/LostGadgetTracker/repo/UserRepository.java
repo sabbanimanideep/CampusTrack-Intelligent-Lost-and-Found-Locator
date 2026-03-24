@@ -11,6 +11,7 @@ import java.util.Optional;
 
 public interface UserRepository extends JpaRepository<User, Long> {
 
+
     Optional<User> findByEmail(String email);
 
     @Query("SELECT u FROM User u WHERE u.rollNoOrEmpId = :value")
@@ -20,4 +21,5 @@ public interface UserRepository extends JpaRepository<User, Long> {
     boolean existsByRoll(@Param("value") String value);
 
     long countByRole(Role role);
+
 }

@@ -1,15 +1,16 @@
 import { useState } from "react";
-import { reportFoundItem } from "./../../Services/lostFoundService";
+import { reportFoundItem } from "../../Services/foundItemApi";
 
 const CATEGORIES = ["electronics", "documents", "clothing", "keys", "accessories", "other"];
 
 const INITIAL_FORM = {
-  name: "",
+  itemName: "",
   description: "",
-  location: "",
+  foundLocation: "",
   category: "electronics",
-  contact: "",
-  foundDate: new Date().toISOString().split("T")[0],
+  contactNumber: "",
+  reporterEmail: "",
+  dateFound: new Date().toISOString().split("T")[0],
 };
 
 const CATEGORY_ICONS = {
@@ -31,15 +32,24 @@ function InputField({ label, error, children }) {
   );
 }
 
-function validate(form) {
+function validate(form, image) {
   const errs = {};
-  if (!form.name.trim()) errs.name = "Item name is required.";
+  if (!form.itemName.trim()) errs.itemName = "Item name is required.";
   if (!form.description.trim()) errs.description = "Please describe the item.";
-  if (!form.location.trim()) errs.location = "Found location is required.";
-  if (!form.foundDate) errs.foundDate = "Date is required.";
-  if (form.contact && !/^\d{10}$/.test(form.contact.replace(/\s/g, ""))) {
-    errs.contact = "Enter a valid 10-digit phone number.";
+  if (!form.foundLocation.trim()) errs.foundLocation = "Found location is required.";
+  if (!form.dateFound) errs.dateFound = "Date is required.";
+  if (!form.reporterEmail.trim()) {
+    errs.reporterEmail = "Your email is required.";
+  } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.reporterEmail)) {
+    errs.reporterEmail = "Enter a valid email address.";
   }
+  if (
+    form.contactNumber &&
+    !/^\d{10}$/.test(form.contactNumber.replace(/\s/g, ""))
+  ) {
+    errs.contactNumber = "Enter a valid 10-digit phone number.";
+  }
+  if (!image) errs.image = "An image of the found item is required.";
   return errs;
 }
 
@@ -71,23 +81,28 @@ export default function ReportFound() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const errs = validate(form);
+    const errs = validate(form, image);
     if (Object.keys(errs).length) {
       setErrors(errs);
       return;
     }
 
     setLoading(true);
-    const fd = new FormData();
-    Object.entries(form).forEach(([k, v]) => v && fd.append(k, v));
-    if (image) fd.append("image", image);
-
     try {
-      await reportFoundItem(fd);
+      await reportFoundItem({
+        itemName: form.itemName,
+        category: form.category,
+        description: form.description,
+        dateFound: form.dateFound,
+        foundLocation: form.foundLocation,
+        contactNumber: form.contactNumber || undefined,
+        reporterEmail: form.reporterEmail,
+        file: image,
+      });
       setSubmitted(true);
     } catch (err) {
       const msg =
-        err.response?.data?.message || "Failed to submit. Please try again.";
+        err.response?.data?.message || err.message || "Failed to submit. Please try again.";
       setErrors({ global: msg });
     } finally {
       setLoading(false);
@@ -156,14 +171,14 @@ export default function ReportFound() {
           )}
 
           {/* Item Name */}
-          <InputField label="Item Name *" error={errors.name}>
+          <InputField label="Item Name *" error={errors.itemName}>
             <input
-              name="name"
-              value={form.name}
+              name="itemName"
+              value={form.itemName}
               placeholder="e.g. Black wallet with ID cards"
               onChange={handleChange}
               className={`w-full px-3 py-2.5 rounded-xl bg-slate-800 text-white placeholder-slate-500 border transition-colors focus:outline-none ${
-                errors.name ? "border-red-500" : "border-slate-700 focus:border-green-500"
+                errors.itemName ? "border-red-500" : "border-slate-700 focus:border-green-500"
               }`}
             />
           </InputField>
@@ -205,47 +220,61 @@ export default function ReportFound() {
 
           {/* Date + Location */}
           <div className="grid grid-cols-2 gap-4">
-            <InputField label="Date Found *" error={errors.foundDate}>
+            <InputField label="Date Found *" error={errors.dateFound}>
               <input
                 type="date"
-                name="foundDate"
-                value={form.foundDate}
+                name="dateFound"
+                value={form.dateFound}
                 max={new Date().toISOString().split("T")[0]}
                 onChange={handleChange}
                 className={`w-full px-3 py-2.5 rounded-xl bg-slate-800 text-white border transition-colors focus:outline-none ${
-                  errors.foundDate ? "border-red-500" : "border-slate-700 focus:border-green-500"
+                  errors.dateFound ? "border-red-500" : "border-slate-700 focus:border-green-500"
                 }`}
               />
             </InputField>
 
-            <InputField label="Found Location *" error={errors.location}>
+            <InputField label="Found Location *" error={errors.foundLocation}>
               <input
-                name="location"
-                value={form.location}
+                name="foundLocation"
+                value={form.foundLocation}
                 placeholder="e.g. Cafeteria, Table 4"
                 onChange={handleChange}
                 className={`w-full px-3 py-2.5 rounded-xl bg-slate-800 text-white placeholder-slate-500 border transition-colors focus:outline-none ${
-                  errors.location ? "border-red-500" : "border-slate-700 focus:border-green-500"
+                  errors.foundLocation ? "border-red-500" : "border-slate-700 focus:border-green-500"
                 }`}
               />
             </InputField>
           </div>
 
-          {/* Contact */}
-          <InputField label="Your Contact Number" error={errors.contact}>
+          {/* Reporter Email */}
+          <InputField label="Your Email *" error={errors.reporterEmail}>
             <input
-              name="contact"
-              value={form.contact}
+              name="reporterEmail"
+              type="email"
+              value={form.reporterEmail}
+              placeholder="you@example.com"
+              onChange={handleChange}
+              className={`w-full px-3 py-2.5 rounded-xl bg-slate-800 text-white placeholder-slate-500 border transition-colors focus:outline-none ${
+                errors.reporterEmail ? "border-red-500" : "border-slate-700 focus:border-green-500"
+              }`}
+            />
+          </InputField>
+
+          {/* Contact */}
+          <InputField label="Your Contact Number" error={errors.contactNumber}>
+            <input
+              name="contactNumber"
+              value={form.contactNumber}
               placeholder="Optional — so the owner can reach you"
               onChange={handleChange}
               className={`w-full px-3 py-2.5 rounded-xl bg-slate-800 text-white placeholder-slate-500 border transition-colors focus:outline-none ${
-                errors.contact ? "border-red-500" : "border-slate-700 focus:border-green-500"
+                errors.contactNumber ? "border-red-500" : "border-slate-700 focus:border-green-500"
               }`}
             />
           </InputField>
 
           {/* Image upload */}
-          <InputField label="Attach Image (Recommended)" error={errors.image}>
+          <InputField label="Attach Image *" error={errors.image}>
             <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-slate-700 hover:border-green-500/50 rounded-xl cursor-pointer transition-colors bg-slate-800/50">
               {imagePreview ? (
                 <img
@@ -269,7 +298,10 @@ export default function ReportFound() {
             {imagePreview && (
               <button
                 type="button"
-                onClick={() => { setImage(null); setImagePreview(null); }}
+                onClick={() => {
+                  setImage(null);
+                  setImagePreview(null);
+                }}
                 className="text-xs text-red-400 hover:underline mt-1"
               >
                 Remove image

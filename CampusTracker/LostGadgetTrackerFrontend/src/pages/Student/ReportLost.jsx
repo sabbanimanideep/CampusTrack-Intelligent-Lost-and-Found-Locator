@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { reportLostItem } from "./../../Services/lostFoundService";
+import { reportLostItem } from "../../Services/lostItemApi"; // ← adjust path to match your project
 
 const CATEGORIES = ["electronics", "documents", "clothing", "keys", "accessories", "other"];
 
@@ -11,6 +11,7 @@ const INITIAL_FORM = {
   category: "electronics",
   contact: "",
   reward: "",
+  userEmail: "",
 };
 
 const CATEGORY_ICONS = {
@@ -42,6 +43,9 @@ function validate(form) {
   if (form.contact && !/^\d{10}$/.test(form.contact.replace(/\s/g, ""))) {
     errs.contact = "Enter a valid 10-digit phone number.";
   }
+  if (!form.userEmail.trim()) errs.userEmail = "Gmail address is required.";
+  else if (!/^[^\s@]+@(gmail\.com|mlrit\.ac\.in)$/i.test(form.userEmail.trim()))
+    errs.userEmail = "Enter a valid Gmail (you@gmail.com) or college email (you@mlrit.ac.in).";
   return errs;
 }
 
@@ -73,28 +77,36 @@ export default function ReportLost() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
     const errs = validate(form);
+
+    // Validate image here since lostItemApi.js throws if image is missing
+    if (!image) errs.image = "An image is required.";
+
     if (Object.keys(errs).length) {
       setErrors(errs);
       return;
     }
 
     setLoading(true);
-    const fd = new FormData();
-    // FIX #3: Was `v && fd.append(k, v)` — falsy check drops reward=0 and treats
-    // the number 0 as missing. Now explicitly checks for empty string/null/undefined
-    // so numeric zero and other valid falsy values are correctly included.
-    Object.entries(form).forEach(([k, v]) => {
-      if (v !== "" && v !== null && v !== undefined) fd.append(k, v);
-    });
-    if (image) fd.append("image", image);
-
     try {
-      await reportLostItem(fd);
+      // Map form fields → the shape lostItemApi.reportLostItem() expects
+      await reportLostItem({
+        itemName: form.name,
+        category: form.category,
+        description: form.description,
+        dateLost: form.date,
+        lastSeenLocation: form.location,
+        contactNumber: form.contact || undefined,
+        reward: form.reward || undefined,
+        userEmail: form.userEmail,
+        file: image,
+      });
+
       setSubmitted(true);
     } catch (err) {
       const msg =
-        err.response?.data?.message || "Failed to submit. Please try again.";
+        err.response?.data?.message || err.message || "Failed to submit. Please try again.";
       setErrors({ global: msg });
     } finally {
       setLoading(false);
@@ -266,7 +278,7 @@ export default function ReportLost() {
           </div>
 
           {/* Image upload */}
-          <InputField label="Attach Image" error={errors.image}>
+          <InputField label="Attach Image *" error={errors.image}>
             <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-slate-700 hover:border-orange-500/50 rounded-xl cursor-pointer transition-colors bg-slate-800/50">
               {imagePreview ? (
                 <img
@@ -296,6 +308,20 @@ export default function ReportLost() {
                 Remove image
               </button>
             )}
+          </InputField>
+
+          {/* Gmail */}
+          <InputField label="Your Gmail Address *" error={errors.userEmail}>
+            <input
+              name="userEmail"
+              type="email"
+              value={form.userEmail}
+              placeholder="you@gmail.com or you@mlrit.ac.in"
+              onChange={handleChange}
+              className={`w-full px-3 py-2.5 rounded-xl bg-slate-800 text-white placeholder-slate-500 border transition-colors focus:outline-none ${
+                errors.userEmail ? "border-red-500" : "border-slate-700 focus:border-orange-500"
+              }`}
+            />
           </InputField>
 
           {/* Submit */}
