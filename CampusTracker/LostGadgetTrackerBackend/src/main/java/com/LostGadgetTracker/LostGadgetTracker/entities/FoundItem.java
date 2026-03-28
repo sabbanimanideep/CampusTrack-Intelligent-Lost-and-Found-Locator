@@ -37,4 +37,10 @@ public class FoundItem {
     private byte[] image;
 
     private boolean approved = false;
+
+    private String status;
+
+    private boolean flagged;
+
+
 }

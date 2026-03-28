@@ -24,7 +24,7 @@ public class LostItemController {
 
     // ================= USER APIs =================
 
-    // 🔹 Report lost item
+    // 🔹 Report lost item — saved as PENDING, not visible to public yet
     @PostMapping("/report")
     public ResponseEntity<?> reportLostItem(
             @RequestParam String itemName,
@@ -64,7 +64,6 @@ public class LostItemController {
     // 🔹 Get image
     @GetMapping("/image/{id}")
     public ResponseEntity<byte[]> getImage(@PathVariable Long id) {
-
         LostItem item = service.getById(id);
 
         if (item == null || item.getImage() == null) {
@@ -76,24 +75,43 @@ public class LostItemController {
                 .body(item.getImage());
     }
 
+    // 🔹 Public listing — only APPROVED items are visible
+    @GetMapping("/all")
+    public ResponseEntity<List<LostItem>> getApprovedItems() {
+        return ResponseEntity.ok(service.getApprovedItems());
+    }
+
     // ================= ADMIN APIs =================
 
-    // 🔹 Get all posts with user details
+    // 🔹 Get all posts (ALL statuses — PENDING, APPROVED, REJECTED)
     @GetMapping("/admin/all")
     public ResponseEntity<List<LostItemResponseDTO>> getAll() {
         return ResponseEntity.ok(service.getAllPostsWithUser());
     }
 
-    // 🔹 Approve post
+    // 🔹 Approve post — item goes live only here
     @PutMapping("/admin/approve/{id}")
     public ResponseEntity<?> approve(@PathVariable Long id) {
         return ResponseEntity.ok(service.approvePost(id));
+    }
+
+    // 🔹 Reject post — marks as REJECTED (not deleted)
+    @PutMapping("/admin/reject/{id}")
+    public ResponseEntity<?> reject(@PathVariable Long id) {
+        return ResponseEntity.ok(service.rejectPost(id));
     }
 
     // 🔹 Edit post
     @PutMapping("/admin/edit/{id}")
     public ResponseEntity<?> edit(@PathVariable Long id, @RequestBody LostItem item) {
         return ResponseEntity.ok(service.editPost(id, item));
+    }
+
+    // 🔹 Delete post
+    @DeleteMapping("/admin/delete/{id}")
+    public ResponseEntity<?> delete(@PathVariable Long id) {
+        service.deletePost(id);
+        return ResponseEntity.ok("Post deleted successfully");
     }
 
     // 🔹 Count APIs (dashboard)
@@ -104,11 +122,5 @@ public class LostItemController {
         map.put("approved", service.getApprovedPosts());
         map.put("pending", service.getPendingPosts());
         return ResponseEntity.ok(map);
-    }
-    // 🔹 Delete post (ADMIN)
-    @DeleteMapping("/admin/delete/{id}")
-    public ResponseEntity<?> delete(@PathVariable Long id) {
-        service.deletePost(id);
-        return ResponseEntity.ok("Post deleted successfully");
     }
 }

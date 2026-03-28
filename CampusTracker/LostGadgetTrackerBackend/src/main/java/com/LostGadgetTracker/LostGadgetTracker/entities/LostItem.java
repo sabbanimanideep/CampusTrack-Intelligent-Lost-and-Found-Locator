@@ -51,4 +51,7 @@ public class LostItem {
     private byte[] image;
 
     private boolean approved = false;
+    private String status; // PENDING, APPROVED, REJECTED
+
+    private boolean flagged;
 }

@@ -140,7 +140,7 @@ export default function AdminDashboard() {
         <nav style={s.nav}>
           {[
             { id: "posts",    icon: "📋", label: "All Posts" },
-            { id: "flagged",  icon: "🚩", label: "Flagged Content", badge: flaggedPosts.length },
+            { id: "flagged",  icon: "🚩", label: "Flagged Content" },
             { id: "overview", icon: "📊", label: "Overview" },
           ].map(item => (
             <button

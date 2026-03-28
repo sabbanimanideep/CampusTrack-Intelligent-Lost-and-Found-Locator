@@ -1,55 +1,69 @@
 // pages/AllPostsPage.jsx
 import { useCallback, useEffect, useState } from "react";
 import {
+  approveFoundItem,
   approveLostItem,
   deleteLostItem,
   editLostItem,
+  getAllFoundItems,
   getAllLostItems,
-} from "../../Services/adminapi"; // adjust import path as needed
+  rejectFoundItem,
+} from "../../Services/adminapi";
+import { adminFlagItem } from "../../Services/Flagapi";
 import { s } from "./styles";
 
 export default function AllPostsPage() {
+  const [tab,           setTab]           = useState("LOST"); // "LOST" | "FOUND"
   const [posts,         setPosts]         = useState([]);
   const [loading,       setLoading]       = useState(true);
   const [error,         setError]         = useState(null);
   const [filterStatus,  setFilterStatus]  = useState("ALL");
-  const [filterType,    setFilterType]    = useState("ALL");
   const [editPost,      setEditPost]      = useState(null);
   const [editText,      setEditText]      = useState({});
-  const [actionLoading, setActionLoading] = useState({}); // per-post loading state
+  const [actionLoading, setActionLoading] = useState({});
 
-  /* ── Fetch all posts on mount ── */
+  /* ── Fetch based on active tab ── */
   const fetchPosts = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
-      const data = await getAllLostItems();
+      const data = tab === "LOST"
+        ? await getAllLostItems()
+        : await getAllFoundItems();
       setPosts(data);
     } catch (err) {
       setError(err?.response?.data?.message || "Failed to load posts.");
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [tab]);
 
   useEffect(() => {
     fetchPosts();
   }, [fetchPosts]);
 
+  /* ── Helpers to normalise field names across both entities ── */
+  const getStatus = (p) => p.status ?? (p.approved ? "APPROVED" : "PENDING");
+  const getTitle  = (p) => p.title  ?? p.itemName;
+  const getDate   = (p) => p.date   ?? p.dateFound ?? p.dateLost ?? "";
+  const getAuthor = (p) => p.author ?? p.reporterEmail ?? p.userEmail ?? "";
+  const getRollNo = (p) => p.rollNo ?? "";
+
   /* ── Filtered view ── */
   const filtered = posts.filter(p => {
-    const statusMatch = filterStatus === "ALL" || p.status === filterStatus;
-    const typeMatch   = filterType   === "ALL" || p.type   === filterType;
-    return statusMatch && typeMatch;
+    if (filterStatus === "ALL") return true;
+    return getStatus(p) === filterStatus;
   });
 
   /* ── Approve ── */
   const handleApprove = async (id) => {
     setActionLoading(prev => ({ ...prev, [id]: "approve" }));
     try {
-      const updated = await approveLostItem(id);
+      const updated = tab === "LOST"
+        ? await approveLostItem(id)
+        : await approveFoundItem(id);
       setPosts(prev =>
-        prev.map(p => (p.id === id ? { ...p, ...updated } : p))
+        prev.map(p => (p.id === id ? { ...p, ...updated, approved: true } : p))
       );
     } catch (err) {
       alert(err?.response?.data?.message || "Failed to approve post.");
@@ -58,10 +72,10 @@ export default function AllPostsPage() {
     }
   };
 
-  /* ── Edit ── */
+  /* ── Edit (lost items only) ── */
   const handleEdit = (post) => {
     setEditPost(post.id);
-    setEditText({ title: post.title, description: post.description });
+    setEditText({ title: getTitle(post), description: post.description });
   };
 
   const handleSaveEdit = async (id) => {
@@ -79,19 +93,47 @@ export default function AllPostsPage() {
     }
   };
 
-  /* ── Delete ── */
+  /* ── Delete / Reject ── */
   const handleDelete = async (id) => {
-    if (!window.confirm("Delete this post?")) return;
+    const action = tab === "LOST" ? "Delete" : "Reject";
+    if (!window.confirm(`${action} this post?`)) return;
     setActionLoading(prev => ({ ...prev, [id]: "delete" }));
     try {
-      await deleteLostItem(id);
-      fetchPosts(); // refresh from server
+      tab === "LOST"
+        ? await deleteLostItem(id)
+        : await rejectFoundItem(id);
+      fetchPosts();
     } catch (err) {
-      alert(err?.response?.data?.message || "Failed to delete post.");
+      alert(err?.response?.data?.message || `Failed to ${action.toLowerCase()} post.`);
     } finally {
       setActionLoading(prev => ({ ...prev, [id]: null }));
     }
   };
+
+  /* ── Flag post → moves it to Flagged tab ── */
+  const handleFlag = async (id, itemType) => {
+    setActionLoading(prev => ({ ...prev, [id]: "flag" }));
+    try {
+      await adminFlagItem(id, itemType);
+      setPosts(prev => prev.filter(p => p.id !== id));
+    } catch (err) {
+      alert(err?.response?.data?.message || "Failed to flag post.");
+    } finally {
+      setActionLoading(prev => ({ ...prev, [id]: null }));
+    }
+  };
+
+  /* ── Tab style helper ── */
+  const tabStyle = (active) => ({
+    padding: "8px 24px",
+    border: "none",
+    borderBottom: active ? "2px solid #4f46e5" : "2px solid transparent",
+    background: "transparent",
+    color: active ? "#4f46e5" : "#6b7280",
+    fontWeight: active ? 700 : 400,
+    cursor: "pointer",
+    fontSize: "0.95rem",
+  });
 
   /* ── Render states ── */
   if (loading) {
@@ -115,7 +157,17 @@ export default function AllPostsPage() {
 
   return (
     <div>
-      {/* Filters */}
+      {/* ── Tabs ── */}
+      <div style={{ display: "flex", borderBottom: "1px solid #e5e7eb", marginBottom: "16px" }}>
+        <button style={tabStyle(tab === "LOST")}  onClick={() => { setTab("LOST");  setFilterStatus("ALL"); }}>
+          🔴 Lost Items
+        </button>
+        <button style={tabStyle(tab === "FOUND")} onClick={() => { setTab("FOUND"); setFilterStatus("ALL"); }}>
+          🟢 Found Items
+        </button>
+      </div>
+
+      {/* ── Filters ── */}
       <div style={s.filterRow}>
         <div style={s.filterGroup}>
           <label style={s.filterLabel}>Status</label>
@@ -125,18 +177,10 @@ export default function AllPostsPage() {
             <option value="APPROVED">Approved</option>
           </select>
         </div>
-        <div style={s.filterGroup}>
-          <label style={s.filterLabel}>Type</label>
-          <select value={filterType} onChange={e => setFilterType(e.target.value)} style={s.select}>
-            <option value="ALL">All</option>
-            <option value="LOST">Lost</option>
-            <option value="FOUND">Found</option>
-          </select>
-        </div>
         <div style={s.filterCount}>{filtered.length} posts found</div>
       </div>
 
-      {/* Post List */}
+      {/* ── Post List ── */}
       <div style={s.postList}>
         {filtered.length === 0 && (
           <div style={s.emptyState}>
@@ -145,106 +189,140 @@ export default function AllPostsPage() {
           </div>
         )}
 
-        {filtered.map(post => (
-          <div key={post.id} style={s.postCard}>
-            {editPost === post.id ? (
-              /* ── Edit Mode ── */
-              <div style={s.editMode}>
-                <input
-                  value={editText.title}
-                  onChange={e => setEditText(t => ({ ...t, title: e.target.value }))}
-                  style={s.editInput}
-                  placeholder="Title"
-                />
-                <textarea
-                  value={editText.description}
-                  onChange={e => setEditText(t => ({ ...t, description: e.target.value }))}
-                  style={s.editTextarea}
-                  rows={3}
-                  placeholder="Description"
-                />
-                <div style={s.editActions}>
-                  <button
-                    onClick={() => handleSaveEdit(post.id)}
-                    style={s.btnSave}
-                    disabled={actionLoading[post.id] === "edit"}
-                  >
-                    {actionLoading[post.id] === "edit" ? "Saving…" : "💾 Save"}
-                  </button>
-                  <button
-                    onClick={() => setEditPost(null)}
-                    style={s.btnCancel}
-                    disabled={actionLoading[post.id] === "edit"}
-                  >
-                    Cancel
-                  </button>
-                </div>
-              </div>
-            ) : (
-              /* ── View Mode ── */
-              <>
-                <div style={s.postHeader}>
-                  <div style={s.postMeta}>
-                    <span style={{
-                      ...s.typePill,
-                      background: post.type === "LOST" ? "#fee2e2" : "#d1fae5",
-                      color:      post.type === "LOST" ? "#dc2626" : "#059669",
-                    }}>
-                      {post.type}
-                    </span>
-                    <span style={{
-                      ...s.statusPill,
-                      background: post.status === "APPROVED" ? "#d1fae5" : "#fef3c7",
-                      color:      post.status === "APPROVED" ? "#059669" : "#92400e",
-                    }}>
-                      {post.status}
-                    </span>
+        {filtered.map(post => {
+          const status = getStatus(post);
+          const isPending = status === "PENDING";
+
+          return (
+            <div key={post.id} style={s.postCard}>
+              {editPost === post.id ? (
+                /* ── Edit Mode (lost only) ── */
+                <div style={s.editMode}>
+                  <input
+                    value={editText.title}
+                    onChange={e => setEditText(t => ({ ...t, title: e.target.value }))}
+                    style={s.editInput}
+                    placeholder="Title"
+                  />
+                  <textarea
+                    value={editText.description}
+                    onChange={e => setEditText(t => ({ ...t, description: e.target.value }))}
+                    style={s.editTextarea}
+                    rows={3}
+                    placeholder="Description"
+                  />
+                  <div style={s.editActions}>
+                    <button
+                      onClick={() => handleSaveEdit(post.id)}
+                      style={s.btnSave}
+                      disabled={actionLoading[post.id] === "edit"}
+                    >
+                      {actionLoading[post.id] === "edit" ? "Saving…" : "💾 Save"}
+                    </button>
+                    <button
+                      onClick={() => setEditPost(null)}
+                      style={s.btnCancel}
+                      disabled={actionLoading[post.id] === "edit"}
+                    >
+                      Cancel
+                    </button>
                   </div>
-                  <span style={s.postDate}>{post.date}</span>
                 </div>
+              ) : (
+                /* ── View Mode ── */
+                <>
+                  <div style={s.postHeader}>
+                    <div style={s.postMeta}>
+                      <span style={{
+                        ...s.typePill,
+                        background: tab === "LOST" ? "#fee2e2" : "#d1fae5",
+                        color:      tab === "LOST" ? "#dc2626" : "#059669",
+                      }}>
+                        {tab}
+                      </span>
+                      <span style={{
+                        ...s.statusPill,
+                        background: status === "APPROVED" ? "#d1fae5" : "#fef3c7",
+                        color:      status === "APPROVED" ? "#059669" : "#92400e",
+                      }}>
+                        {status}
+                      </span>
 
-                <h3 style={s.postTitle}>{post.title}</h3>
-                <p style={s.postDesc}>{post.description}</p>
-
-                <div style={s.postFooter}>
-                  <div style={s.postAuthor}>
-                    <div style={s.authorAvatar}>{post.author?.[0]}</div>
-                    <div>
-                      <div style={s.authorName}>{post.author}</div>
-                      <div style={s.authorRoll}>{post.rollNo}</div>
                     </div>
+                    <span style={s.postDate}>{getDate(post)}</span>
                   </div>
-                  <div style={s.postActions}>
-                    {post.status === "PENDING" && (
+
+                  <h3 style={s.postTitle}>{getTitle(post)}</h3>
+                  <p style={s.postDesc}>{post.description}</p>
+
+                  <div style={s.postFooter}>
+                    <div style={s.postAuthor}>
+                      <div style={s.authorAvatar}>{getAuthor(post)?.[0]?.toUpperCase()}</div>
+                      <div>
+                        <div style={s.authorName}>{getAuthor(post)}</div>
+                        <div style={s.authorRoll}>{getRollNo(post)}</div>
+                      </div>
+                    </div>
+                    <div style={s.postActions}>
+                      {status === "PENDING" && (
+                        <button
+                          onClick={() => handleApprove(post.id)}
+                          style={s.btnApprove}
+                          disabled={!!actionLoading[post.id]}
+                        >
+                          {actionLoading[post.id] === "approve" ? "Approving…" : "✓ Approve"}
+                        </button>
+                      )}
+                      {tab === "LOST" && (
+                        <button
+                          onClick={() => handleEdit(post)}
+                          style={s.btnEdit}
+                          disabled={!!actionLoading[post.id]}
+                        >
+                          ✏️ Edit
+                        </button>
+                      )}
+
+                      {/* ── Flag button: PENDING posts only ── */}
+                      {isPending && (
+                        <button
+                          onClick={() => handleFlag(post.id, tab)}
+                          style={{
+                            padding: "6px 14px",
+                            border: "1px solid #fca5a5",
+                            borderRadius: "6px",
+                            background: "#fff",
+                            color: "#dc2626",
+                            fontWeight: 500,
+                            cursor: actionLoading[post.id] ? "not-allowed" : "pointer",
+                            fontSize: "0.85rem",
+                            opacity: actionLoading[post.id] ? 0.6 : 1,
+                          }}
+                          disabled={!!actionLoading[post.id]}
+                          title="Flag this post for review"
+                        >
+                          {actionLoading[post.id] === "flag" ? "Flagging…" : "🚩 Flag"}
+                        </button>
+                      )}
+
                       <button
-                        onClick={() => handleApprove(post.id)}
-                        style={s.btnApprove}
+                        onClick={() => handleDelete(post.id)}
+                        style={s.btnDelete}
                         disabled={!!actionLoading[post.id]}
                       >
-                        {actionLoading[post.id] === "approve" ? "Approving…" : "✓ Approve"}
+                        {actionLoading[post.id] === "delete"
+                          ? (tab === "LOST" ? "Deleting…" : "Rejecting…")
+                          : (tab === "LOST" ? "🗑️ Delete"  : "✕ Reject")}
                       </button>
-                    )}
-                    <button
-                      onClick={() => handleEdit(post)}
-                      style={s.btnEdit}
-                      disabled={!!actionLoading[post.id]}
-                    >
-                      ✏️ Edit
-                    </button>
-                    <button
-                      onClick={() => handleDelete(post.id)}
-                      style={s.btnDelete}
-                      disabled={!!actionLoading[post.id]}
-                    >
-                      {actionLoading[post.id] === "delete" ? "Deleting…" : "🗑️ Delete"}
-                    </button>
+                    </div>
                   </div>
-                </div>
-              </>
-            )}
-          </div>
-        ))}
+                </>
+              )}
+            </div>
+          );
+        })}
       </div>
+
     </div>
   );
 }

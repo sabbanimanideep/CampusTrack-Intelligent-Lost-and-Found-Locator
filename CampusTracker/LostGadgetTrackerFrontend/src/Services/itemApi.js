@@ -1,4 +1,4 @@
-import axios from "./axiosInstance";
+import axios from "./axiosinstance";
 
 const API_BASE = "/api/items";
 
