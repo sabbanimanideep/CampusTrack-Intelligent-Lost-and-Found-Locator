@@ -11,4 +11,5 @@ public interface FoundItemRepository extends JpaRepository<FoundItem, Long> {
     List<FoundItem> findByReporterEmail(String email);
     long countByReporterEmail(String email); // per user
     long count(); // total (optional)
+    List<FoundItem> findByApproved(boolean approved);
 }

@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, NavLink, useNavigate } from "react-router-dom";
 
 const HERO_IMG = "https://mlrit.ac.in/wp-content/uploads/2022/04/about-banner2.jpg";
 
@@ -82,6 +82,28 @@ function Navbar({ active, setActive }) {
               {link.label}
             </a>
           ))}
+
+          {/* ── Chat tab (new) ── */}
+          <NavLink
+            to="/chat"
+            className={({ isActive }) =>
+              isActive ? "text-blue-600 font-semibold" : "text-gray-600"
+            }
+            style={({ isActive }) => ({
+              color: isActive ? "#f97316" : "#94a3b8",
+              textDecoration: "none",
+              fontWeight: 600,
+              fontSize: 14,
+              transition: "color 0.2s",
+              borderBottom: isActive ? "2px solid #f97316" : "2px solid transparent",
+              paddingBottom: 2,
+              display: "flex",
+              alignItems: "center",
+              gap: 5,
+            })}
+          >
+            💬 Chat
+          </NavLink>
 
           {isLoggedIn ? (
             <>

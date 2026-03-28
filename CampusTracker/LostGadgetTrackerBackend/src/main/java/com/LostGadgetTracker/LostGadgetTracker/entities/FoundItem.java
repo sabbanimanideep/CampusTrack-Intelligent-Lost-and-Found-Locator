@@ -35,4 +35,6 @@ public class FoundItem {
     @Lob
     @Column(columnDefinition = "LONGBLOB")
     private byte[] image;
+
+    private boolean approved = false;
 }

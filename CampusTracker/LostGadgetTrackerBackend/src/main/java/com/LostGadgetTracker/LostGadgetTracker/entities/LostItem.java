@@ -49,4 +49,6 @@ public class LostItem {
     @Lob
     @Column(columnDefinition = "LONGBLOB")
     private byte[] image;
+
+    private boolean approved = false;
 }

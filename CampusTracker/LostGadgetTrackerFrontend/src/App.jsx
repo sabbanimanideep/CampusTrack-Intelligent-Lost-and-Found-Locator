@@ -14,6 +14,11 @@ import StudentProfile from "./pages/Student/Profile";
 import ReportFound from "./pages/Student/ReportFound";
 import ReportLost from "./pages/Student/ReportLost";
 
+import ChatLayout from "./pages/Student/chatfeature/Chatlayout";
+import ChatPage from "./pages/Student/chatfeature/Chatpage";
+import ContactRequestsPage from "./pages/Student/chatfeature/Contactrequestspage";
+import PrivacyPage from "./pages/Student/chatfeature/Privacypage";
+
 // ── Simple Placeholder (for future pages only) ─────────
 const PlaceholderPage = ({ title }) => (
   <div className="min-h-screen bg-slate-950 flex items-center justify-center">
@@ -110,6 +115,12 @@ export default function App() {
             <AdminDashboard />
           </AdminRoute>
         } />
+
+      <Route path="/chat" element={<ProtectedRoute><ChatLayout /></ProtectedRoute>}>
+      <Route index           element={<ChatPage />} />
+      <Route path="requests" element={<ContactRequestsPage />} />
+      <Route path="privacy"  element={<PrivacyPage />} />
+      </Route>
 
       {/* ── Fallback: Redirect unknown URLs to Home ─────── */}
       <Route path="*" element={<Navigate to="/" replace />} />
