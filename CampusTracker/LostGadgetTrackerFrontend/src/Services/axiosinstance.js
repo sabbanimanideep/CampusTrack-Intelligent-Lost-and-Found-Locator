@@ -39,4 +39,21 @@ axiosInstance.interceptors.response.use(
   }
 );
 
+// Send chat request
+export const sendChatRequest = (sender, receiver, itemId) =>
+  API.post(`/chat-request/send?sender=${sender}&receiver=${receiver}&itemId=${itemId}`);
+
+// Get pending requests
+export const getPendingRequests = (receiver) =>
+  API.get(`/chat-request/pending?receiver=${receiver}`);
+
+// Accept
+export const acceptRequest = (id) =>
+  API.put(`/chat-request/accept/${id}`);
+
+// Reject
+export const rejectRequest = (id) =>
+  API.put(`/chat-request/reject/${id}`);
+
+
 export default axiosInstance;

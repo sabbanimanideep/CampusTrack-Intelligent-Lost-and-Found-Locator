@@ -5,9 +5,8 @@ import { useNavigate } from "react-router-dom";
 import AllPostsPage from "./Allpostspage";
 import FlaggedPage from "./Flaggedpage";
 import OverviewPage from "./Overviewpage";
+import ReportingPage from "./Reportingpage"; // ✅ NEW
 import { s } from "./styles";
-
-
 
 /* ── Temporary mock data (remove once backend is wired up) ── */
 const mockPosts = [
@@ -37,10 +36,10 @@ export default function AdminDashboard() {
   // ── Confirm dialog helper ──────────────────────────────
   const confirm = (message, onConfirm) => setConfirmDialog({ message, onConfirm });
 
-  // ── Handlers (call API then update local state) ────────
+  // ── Handlers ──────────────────────────────────────────
   const handleApprove = async (id) => {
     try {
-      await approvePost(id);                                         // API call
+      await approvePost(id);
       setPosts(prev => prev.map(p => p.id === id ? { ...p, status: "APPROVED" } : p));
       showToast("✅ Post approved successfully");
     } catch (err) {
@@ -50,7 +49,7 @@ export default function AdminDashboard() {
 
   const handleEdit = async (id, editText) => {
     try {
-      await updatePost(id, editText);                                // API call
+      await updatePost(id, editText);
       setPosts(prev => prev.map(p => p.id === id ? { ...p, ...editText } : p));
       showToast("✏️ Post updated successfully");
     } catch (err) {
@@ -61,7 +60,7 @@ export default function AdminDashboard() {
   const handleDelete = (id) => {
     confirm("Are you sure you want to delete this post?", async () => {
       try {
-        await deletePost(id);                                        // API call
+        await deletePost(id);
         setPosts(prev => prev.filter(p => p.id !== id));
         setConfirmDialog(null);
         showToast("🗑️ Post deleted", "error");
@@ -73,7 +72,7 @@ export default function AdminDashboard() {
 
   const handleDismissFlag = async (id) => {
     try {
-      await dismissFlag(id);                                         // API call
+      await dismissFlag(id);
       setPosts(prev => prev.map(p => p.id === id ? { ...p, flagged: false, flagCount: 0 } : p));
       showToast("✅ Flag dismissed");
     } catch (err) {
@@ -84,7 +83,7 @@ export default function AdminDashboard() {
   const handleRemoveFlagged = (id) => {
     confirm("Permanently remove this flagged post?", async () => {
       try {
-        await removeFlaggedPost(id);                                 // API call
+        await removeFlaggedPost(id);
         setPosts(prev => prev.filter(p => p.id !== id));
         setConfirmDialog(null);
         showToast("🗑️ Flagged post removed", "error");
@@ -112,9 +111,10 @@ export default function AdminDashboard() {
 
   // ── Page meta ──────────────────────────────────────────
   const pageMeta = {
-    posts:    { title: "📋 All Posts",        subtitle: "Manage all user-submitted lost & found posts" },
-    flagged:  { title: "🚩 Flagged Content",  subtitle: "Review and moderate reported content" },
-    overview: { title: "📊 Overview",         subtitle: "Platform statistics at a glance" },
+    posts:     { title: "📋 All Posts",          subtitle: "Manage all user-submitted lost & found posts" },
+    flagged:   { title: "🚩 Flagged Content",    subtitle: "Review and moderate reported content" },
+    overview:  { title: "📊 Overview",           subtitle: "Platform statistics at a glance" },
+    reporting: { title: "📈 Reports & Insights", subtitle: "Reporting dashboard and user engagement metrics" }, // ✅ NEW
   };
 
   return (
@@ -139,9 +139,10 @@ export default function AdminDashboard() {
 
         <nav style={s.nav}>
           {[
-            { id: "posts",    icon: "📋", label: "All Posts" },
-            { id: "flagged",  icon: "🚩", label: "Flagged Content" },
-            { id: "overview", icon: "📊", label: "Overview" },
+            { id: "posts",     icon: "📋", label: "All Posts" },
+            { id: "flagged",   icon: "🚩", label: "Flagged Content" },
+            { id: "overview",  icon: "📊", label: "Overview" },
+            { id: "reporting", icon: "📈", label: "Reports & Insights" }, // ✅ NEW
           ].map(item => (
             <button
               key={item.id}
@@ -165,24 +166,10 @@ export default function AdminDashboard() {
           <p style={s.pageSubtitle}>{pageMeta[activeTab].subtitle}</p>
         </div>
 
-        {activeTab === "overview" && (
-          <OverviewPage stats={stats} posts={posts} />
-        )}
-        {activeTab === "posts" && (
-          <AllPostsPage
-            posts={allPosts}
-            onApprove={handleApprove}
-            onEdit={handleEdit}
-            onDelete={handleDelete}
-          />
-        )}
-        {activeTab === "flagged" && (
-          <FlaggedPage
-            flaggedPosts={flaggedPosts}
-            onDismissFlag={handleDismissFlag}
-            onRemove={handleRemoveFlagged}
-          />
-        )}
+        {activeTab === "overview"  && <OverviewPage stats={stats} posts={posts} />}
+        {activeTab === "posts"     && <AllPostsPage posts={allPosts} onApprove={handleApprove} onEdit={handleEdit} onDelete={handleDelete} />}
+        {activeTab === "flagged"   && <FlaggedPage flaggedPosts={flaggedPosts} onDismissFlag={handleDismissFlag} onRemove={handleRemoveFlagged} />}
+        {activeTab === "reporting" && <ReportingPage posts={posts} />}  {/* ✅ NEW */}
       </main>
 
       {/* ── TOAST ── */}

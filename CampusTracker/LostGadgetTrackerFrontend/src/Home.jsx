@@ -390,7 +390,7 @@ function LostFoundSection() {
               onMouseLeave={(e) => e.currentTarget.style.transform = "translateY(0)"}
             >
               <div style={{ fontSize: 48, marginBottom: 16 }}>📦</div>
-              <h3 style={{ color: "#fff", fontSize: 22, fontWeight: 800, marginBottom: 8 }}>Browse Found Items</h3>
+              <h3 style={{ color: "#fff", fontSize: 22, fontWeight: 800, marginBottom: 8 }}>Browse  Items</h3>
               <p style={{ color: "#64748b", lineHeight: 1.6, fontSize: 14, marginBottom: 20 }}>
                 Check our collection of currently held found items. Your lost item might already be here.
               </p>

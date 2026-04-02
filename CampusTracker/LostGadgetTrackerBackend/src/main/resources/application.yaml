@@ -9,7 +9,9 @@ spring:
     username: root
     password: root1234
     driver-class-name: com.mysql.cj.jdbc.Driver
-
+  websocket:
+    message-broker:
+      enabled: true
   jpa:
     hibernate:
       ddl-auto: update
@@ -25,3 +27,9 @@ app:
     dir: uploads
   cors:
     allowed-origin: http://localhost:5173
+
+logging:
+  level:
+    org.springframework.web: INFO
+    org.springframework.messaging: DEBUG
+    org.hibernate.SQL: DEBUG
